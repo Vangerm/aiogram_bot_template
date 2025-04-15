@@ -1,0 +1,10 @@
+venv/
+.venv/
+.mypy*
+
+Dockerfile*
+
+.env
+
+*.log
+.github
