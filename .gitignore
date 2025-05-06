@@ -1,6 +1,8 @@
 venv/
 .venv/
 .mypy*
+.pytest_cache/
+__pycache__/
 
 Dockerfile*
 

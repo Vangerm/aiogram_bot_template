@@ -5,7 +5,7 @@ from aiogram.types import Message
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 
-from states.states import NatsFillForm
+from states.states import PromocodeFillForm
 # from fluentogram import TranslatorRunner
 
 
@@ -13,16 +13,12 @@ logger = logging.getLogger(__name__)
 
 bot_router = Router()
 
-# Создаем "базу данных" пользователей
-user_dict: dict = {}
+# демонстрация форм с состояниями
 
-
-@bot_router.message(Command(commands='cancel'), StateFilter(NatsFillForm))
+@bot_router.message(Command(commands='cancel'), StateFilter(PromocodeFillForm))
 async def process_cancel_command_state(message: Message, state: FSMContext):
     await message.answer(
-        text='Вы вышли из настройки автопоста.\n\n'
-             'Чтобы снова перейти к настройке втопоста - '
-             'отправьте команду /autopost.'
+        text='1'
     )
     # Сбрасываем состояние и очищаем данные, полученные внутри состояний
     await state.set_state()
@@ -31,69 +27,50 @@ async def process_cancel_command_state(message: Message, state: FSMContext):
 @bot_router.message(Command(commands='cancel'))
 async def process_cancel_command(message: Message, state: FSMContext):
     await message.answer(
-        text='Отменять нечего. Вы не настраиваете автопост.\n\n'
-        'Чтобы перейти к настройке автопоста - '
-        'отправьте команду /autopost.'
+        text='2'
         )
+    await state.set_state()
 
 
-@bot_router.message(Command(commands='autopost'))
+@bot_router.message(Command(commands='aaa'))
 async def process_autopost_command(message: Message, state: FSMContext):
-    logger.info(f'{message.chat.username} ({message.chat.id}) '
-                '- start fill autopost')
-    await message.answer(text='Пожалуйста, введите id группы vk.')
-    await state.set_state(NatsFillForm.fill_id_vk_group)
+    await message.answer(text='3')
+    await state.set_state(PromocodeFillForm.fill_1)
 
 
-@bot_router.message(StateFilter(NatsFillForm.fill_id_vk_group),
+@bot_router.message(StateFilter(PromocodeFillForm.fill_1),
                     lambda x: x.text.isdigit())
 async def process_autopost_id_vk_group(message: Message, state: FSMContext):
-    await state.update_data(id_vk_group=int(message.text))
+    await state.update_data(a_1=int(message.text))
     await message.answer(
-        text='Спасибо!\n\nА теперь введите id группы tg.'
+        text='4'
     )
-    await state.set_state(NatsFillForm.fill_id_tg_group)
+    await state.set_state(PromocodeFillForm.fill_2)
 
 
-@bot_router.message(StateFilter(NatsFillForm.fill_id_vk_group))
+@bot_router.message(StateFilter(PromocodeFillForm.fill_1))
 async def warning_not_id_vk_group(message: Message):
     await message.answer(
-        text='id группы vk должен быть числом.'
+        text='5'
     )
 
 
-@bot_router.message(StateFilter(NatsFillForm.fill_id_tg_group),
+@bot_router.message(StateFilter(PromocodeFillForm.fill_2),
                     lambda x: x.text.isdigit())
 async def process_autopost_id_tg_group(message: Message, state: FSMContext):
-    await state.update_data(id_tg_group=int(message.text))
+    await state.update_data(a_2=int(message.text))
 
-    user_dict[message.from_user.id] = await state.get_data()
+    data_state = await state.get_data()
 
     await state.clear()
-    print(user_dict)
 
     await message.answer(
-        text='Ваш бот запущен, наслаждайтесь!'
+        text=f'{data_state}'
     )
 
 
-@bot_router.message(StateFilter(NatsFillForm.fill_id_tg_group))
+@bot_router.message(StateFilter(PromocodeFillForm.fill_2))
 async def warning_not_id_tg_group(message: Message):
     await message.answer(
-        text='id группы tg должен быть числом.'
+        text='6'
     )
-
-
-# в дальнейшем перенести в userhandlers
-@bot_router.message(Command(commands='showautopost'))
-async def process_showautopost_command(message: Message):
-    if message.from_user.id in user_dict:
-        await message.answer(
-            text=f'id vk - {user_dict[message.from_user.id]['id_vk_group']}'
-            f'\nid tg - {user_dict[message.from_user.id]['id_tg_group']}'
-        )
-    else:
-        await message.answer(
-            text='Вы еще не настраивали бота,'
-            'для настройки напишите мне /autopost'
-        )

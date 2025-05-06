@@ -3,18 +3,31 @@ import json
 from nats.js.client import JetStreamContext
 
 
-async def vk_post_publisher(
+async def user_active(
         js: JetStreamContext,
-        tg_group_id: int,
-        vk_group_id: int,
-        vk_token: str,
+        user_id: int,
+        user_name: str,
         subject: str
 ) -> None:
 
     payload = json.dumps({
-        'tg_group_id': str(tg_group_id),
-        'vk_group_id': str(vk_group_id),
-        'vk_token': vk_token,
+        'user_id': user_id,
+        'user_name': user_name
+    }).encode()
+
+    await js.publish(subject=subject, payload=payload)
+
+
+async def user_inactive(
+        js: JetStreamContext,
+        user_id: int,
+        user_name: str,
+        subject: str
+) -> None:
+
+    payload = json.dumps({
+        'user_id': user_id,
+        'user_name': user_name
     }).encode()
 
     await js.publish(subject=subject, payload=payload)

@@ -1,3 +1,5 @@
+# использование NatsStorage для хранения состояний и данных FSM в aiogram
+
 from typing import Any, Optional, Self
 
 import ormsgpack

@@ -10,7 +10,8 @@ from handlers import get_routers
 from storage.nats_storage import NatsStorage
 # from middlewares.i18n import TranslatorRunnerMiddleware
 # from utils.i18n import create_translator_hub
-from utils.nats_connect import connect_to_nats
+from bot.utils.nats_connect import connect_to_nats
+from bot.utils.start_consumer import start_sucsess_add_consumer
 
 
 # Подключаем логирование
@@ -30,17 +31,12 @@ async def main() -> None:
     # Инициализируем хранилище на базе NATS
     storage: NatsStorage = await NatsStorage(nc=nc, js=js).create_storage()
 
-    # Заполняем конфигурационными данными переменные
-    telegram_bot_token = config.tg_bot.token
-
     # Активация телеграмм бота
-    bot: Bot = Bot(token=telegram_bot_token)
+    bot: Bot = Bot(token=config.tg_bot.token)
     dp: Dispatcher = Dispatcher(storage=storage)
 
     # Создаем объект типа TranslatorHub
     # translator_hub: TranslatorHub = create_translator_hub()
-
-    dp['admin_ids'] = config.tg_bot.admin_ids
 
     dp.include_routers(*get_routers())
 
@@ -49,9 +45,29 @@ async def main() -> None:
 
     # Запускаем polling
     try:
-        # await bot.delete_webhook(drop_pending_updates=True)
+        await bot.delete_webhook(drop_pending_updates=True)
         # await dp.start_polling(bot, _translator_hub=translator_hub)
-        await dp.start_polling(bot)
+
+        await asyncio.gather(
+            dp.start_polling(
+                bot,
+                js=js,
+                admin_ids=config.tg_bot.admin_ids,
+                subject_active_publisher=config.nats_stream.subject_active_publisher,
+                subject_inactive_publisher=config.nats_stream.subject_inactive_publisher
+            ),
+            start_sucsess_add_consumer(
+                nc=nc,
+                js=js,
+                bot=bot,
+                subject_consumer=config.nats_stream.subject_sucsess_add_consumer,
+                stream=config.nats_stream.stream
+            )
+        )
+    except KeyboardInterrupt:
+        logger.info('Bot stopped by user')
+    except SystemExit:
+        logger.info('Bot stopped by system exit')
     except Exception as e:
         logger.exception(e)
     finally:
