@@ -27,6 +27,7 @@ class NatsStreamConfig:
 class Config:
     tg_bot: TgBot
     nats: NatsConfig
+    nats_stream: NatsStreamConfig
 
 
 def load_config(path: str | None = None) -> Config:

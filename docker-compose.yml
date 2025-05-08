@@ -20,14 +20,26 @@ services:
     depends_on:
       - nats
 
-  bot:
-    image: 'vangerm/bot_image_name:version' #наименование образа и версия
-    container_name: container_name
-    restart: 'unless-stopped'
-    env_file: './bot/.env'
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    # volumes:
-    #   - ./bot/loger:/loger
-    depends_on:
-      - 'nats-nui'
+  # bot:
+  #   image: 'vangerm/bot_image_name:version' #наименование образа и версия
+  #   container_name: container_name
+  #   restart: 'unless-stopped'
+  #   env_file: './bot/.env'
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   # volumes:
+  #   #   - ./bot/loger:/loger
+  #   depends_on:
+  #     - 'nats-nui'
+
+    # microservice_vk:
+  #   image: 'vangerm/service_name:version' #наименование образа и версия
+  #   container_name: container_name
+  #   restart: 'unless-stopped'
+  #   env_file: './service_1/.env'
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   # volumes:
+  #   #   - ./service_1/loger:/loger
+  #   depends_on:
+  #     - 'bot'

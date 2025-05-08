@@ -12,6 +12,7 @@ from storage.nats_storage import NatsStorage
 # from utils.i18n import create_translator_hub
 from bot.utils.nats_connect import connect_to_nats
 from bot.utils.start_consumer import start_sucsess_add_consumer
+from bot.utils.stream_create import create_stream
 
 
 # Подключаем логирование
@@ -27,6 +28,8 @@ async def main() -> None:
 
     # Подключаемся к NATS
     nc, js = await connect_to_nats(servers=config.nats.servers)
+
+    create_stream(js=js, stream=config.nats_stream.stream)
 
     # Инициализируем хранилище на базе NATS
     storage: NatsStorage = await NatsStorage(nc=nc, js=js).create_storage()
